@@ -1,0 +1,136 @@
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+  font-family: Arial, sans-serif;
+}
+
+/* ================= MAIN WRAPPER ================= */
+.register-wrapper {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  min-height: 100vh;
+}
+
+/* ================= LEFT IMAGE ================= */
+.left-image-section {
+  width: 100%;
+  height: 100%;
+}
+
+.left-image-section img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+/* ================= RIGHT FORM ================= */
+.right-form-section {
+  background-color: #86a9c9;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 20px;
+}
+
+/* ================= FORM CARD ================= */
+.form-container {
+  width: 100%;
+  max-width: 420px;
+  background-color: #e6e6e6;
+  padding: 30px;
+  border-radius: 25px;
+}
+
+.form-container h2 {
+  text-align: center;
+  margin-bottom: 20px;
+}
+
+/* ================= FORM ELEMENTS ================= */
+.form-group {
+  margin-bottom: 12px;
+}
+
+.form-group label {
+  font-size: 13px;
+  display: block;
+  margin-bottom: 5px;
+}
+
+.form-group input,
+.form-group select {
+  width: 100%;
+  padding: 10px;
+  border-radius: 8px;
+  border: none;
+  outline: none;
+}
+
+/* ================= BUTTON ================= */
+.submit-btn {
+  width: 100%;
+  padding: 12px;
+  margin-top: 15px;
+  border-radius: 25px;
+  border: none;
+  background-color: #2f80ed;
+  color: #fff;
+  cursor: pointer;
+}
+
+.submit-btn:hover {
+  background-color: #256bd4;
+}
+
+/* ================= LOGIN ================= */
+.login-link {
+  margin-top: 12px;
+  text-align: center;
+  font-size: 13px;
+}
+
+.login-link span {
+  color: #2f80ed;
+  cursor: pointer;
+}
+
+/* =================================================
+   ================ RESPONSIVE =====================
+   ================================================= */
+
+/* -------- Tablet & Mobile -------- */
+@media (max-width: 992px) {
+  .register-wrapper {
+    grid-template-columns: 1fr;
+    grid-template-rows: 40vh auto;
+  }
+
+  .left-image-section {
+    height: 40vh;
+  }
+}
+
+/* -------- Small Mobile -------- */
+@media (max-width: 576px) {
+  .form-container {
+    padding: 20px;
+    border-radius: 18px;
+  }
+}
+
+
+.login-link a {
+  text-decoration: none; /* removes underline */
+}
+
+.login-link span {
+  color: #2f80ed;        /* blue color */
+  cursor: pointer;       /* pointer on hover */
+  font-weight: 500;      /* medium bold */
+  transition: color 0.3s; /* smooth hover effect */
+}
+
+.login-link span:hover {
+  color: #1c5bbf;        /* darker blue on hover */
+}
