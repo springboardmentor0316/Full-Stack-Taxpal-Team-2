@@ -5,17 +5,24 @@
   font-family: Arial, sans-serif;
 }
 
+/* ================= DISABLE PAGE SCROLL ================= */
+html, body {
+  height: 100%;
+  overflow: hidden;
+}
+
 /* ================= MAIN WRAPPER ================= */
 .register-wrapper {
   display: grid;
   grid-template-columns: 1fr 1fr;
-  min-height: 100vh;
+  height: 100vh; /* FIXED HEIGHT */
 }
 
-/* ================= LEFT IMAGE ================= */
+/* ================= LEFT IMAGE (FIXED) ================= */
 .left-image-section {
-  width: 100%;
-  height: 100%;
+  height: 100vh;
+  position: sticky;
+  top: 0;
 }
 
 .left-image-section img {
@@ -24,13 +31,14 @@
   object-fit: cover;
 }
 
-/* ================= RIGHT FORM ================= */
+/* ================= RIGHT FORM (SCROLLABLE) ================= */
 .right-form-section {
   background-color: #86a9c9;
-  display: flex;
-  align-items: center;
-  justify-content: center;
   padding: 20px;
+  overflow-y: auto; /* ✅ SCROLL ENABLE */
+  height: 100vh;
+  display: flex;
+  justify-content: center;
 }
 
 /* ================= FORM CARD ================= */
@@ -40,6 +48,7 @@
   background-color: #e6e6e6;
   padding: 30px;
   border-radius: 25px;
+  margin: auto 0; /* centers vertically when less content */
 }
 
 .form-container h2 {
@@ -83,54 +92,49 @@
   background-color: #256bd4;
 }
 
-/* ================= LOGIN ================= */
+/* ================= LOGIN LINK ================= */
 .login-link {
   margin-top: 12px;
   text-align: center;
   font-size: 13px;
 }
 
+.login-link a {
+  text-decoration: none;
+}
+
 .login-link span {
   color: #2f80ed;
   cursor: pointer;
+  font-weight: 500;
+  transition: color 0.3s;
 }
 
-/* =================================================
-   ================ RESPONSIVE =====================
-   ================================================= */
+.login-link span:hover {
+  color: #1c5bbf;
+}
 
-/* -------- Tablet & Mobile -------- */
+/* ================= RESPONSIVE ================= */
+
+/* Tablet & Mobile */
 @media (max-width: 992px) {
   .register-wrapper {
     grid-template-columns: 1fr;
-    grid-template-rows: 40vh auto;
   }
 
   .left-image-section {
-    height: 40vh;
+    display: none; /* optional: hide image on mobile */
+  }
+
+  .right-form-section {
+    height: 100vh;
   }
 }
 
-/* -------- Small Mobile -------- */
+/* Small Mobile */
 @media (max-width: 576px) {
   .form-container {
     padding: 20px;
     border-radius: 18px;
   }
-}
-
-
-.login-link a {
-  text-decoration: none; /* removes underline */
-}
-
-.login-link span {
-  color: #2f80ed;        /* blue color */
-  cursor: pointer;       /* pointer on hover */
-  font-weight: 500;      /* medium bold */
-  transition: color 0.3s; /* smooth hover effect */
-}
-
-.login-link span:hover {
-  color: #1c5bbf;        /* darker blue on hover */
 }

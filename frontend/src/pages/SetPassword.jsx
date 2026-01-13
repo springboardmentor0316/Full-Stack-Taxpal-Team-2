@@ -3,22 +3,18 @@ import "../styles/SetPassword.css";
 import img1 from "../assets/img1.png";
 import { Link } from "react-router-dom";
 
-
 const SetPassword = () => {
   return (
-    <div className="set-wrapper">
-
-      {/* LEFT IMAGE */}
-      <div className="set-left">
-        <img src={img1} alt="Set Password Background" />
+    <div className="login-wrapper">
+      {/* LEFT IMAGE SECTION */}
+      <div className="left-image-section">
+        <img src={img1} alt="TaxPal" />
       </div>
 
-      {/* RIGHT FORM */}
-      <div className="set-right">
-        <div className="set-card">
-
-          <h2>Set a Password</h2>
-
+      {/* RIGHT FORM SECTION */}
+      <div className="right-form-section">
+        <div className="form-container">
+          <h1 className="brand-title">Set a Password</h1>
           <p className="subtitle">
             Your previous password has been reset. Please set a new password for your account.
           </p>
@@ -33,18 +29,15 @@ const SetPassword = () => {
             <input type="password" placeholder="Re-enter password" />
           </div>
 
-          <button className="set-btn">Set Password</button>
+          <button className="submit-btn">Set Password</button>
 
-          <p className="back-link">
-  <Link to="/">
-    <span>Back to Sign in</span>
-  </Link>
-</p>
-
-
+          <p className="forgot">
+            <Link to="/">
+              <span>Back to Sign in</span>
+            </Link>
+          </p>
         </div>
       </div>
-
     </div>
   );
 };

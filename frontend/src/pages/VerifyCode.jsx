@@ -5,22 +5,22 @@ import { Link } from "react-router-dom";
 
 const VerifyCode = () => {
   return (
-    <div className="verify-wrapper">
-      {/* LEFT IMAGE */}
-      <div className="verify-left">
-        <img src={img1} alt="Verify Background" />
+    <div className="login-wrapper">
+      {/* LEFT IMAGE SECTION */}
+      <div className="left-image-section">
+        <img src={img1} alt="TaxPal" />
       </div>
 
-      {/* RIGHT CONTENT */}
-      <div className="verify-right">
-        <div className="verify-card">
+      {/* RIGHT FORM SECTION */}
+      <div className="right-form-section">
+        <div className="form-container">
           <div className="icon-box">
             <span>✉️</span>
           </div>
 
-          <h2>verify code</h2>
+          <h1 className="brand-title">Verify Code</h1>
 
-          <p className="description">
+          <p className="subtitle">
             An authentication code has been sent to your email
           </p>
 
@@ -30,12 +30,12 @@ const VerifyCode = () => {
           </div>
 
           <p className="resend-text">
-            Didn’t receive a code? <span>Resend</span>
+            Didn't receive a code? <span>Resend</span>
           </p>
 
-          <button className="verify-btn">Verify</button>
+          <button className="submit-btn">Verify</button>
 
-          <p className="back-link">
+          <p className="forgot">
             Back to{" "}
             <Link to="/">
               <span>Sign in</span>
