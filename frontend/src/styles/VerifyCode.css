@@ -1,0 +1,180 @@
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+  font-family: Arial, sans-serif;
+}
+
+/* ================= MAIN WRAPPER ================= */
+.login-wrapper {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  min-height: 100vh;
+}
+
+/* ================= LEFT IMAGE ================= */
+.left-image-section {
+  width: 100%;
+  height: 100%;
+}
+
+.left-image-section img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+/* ================= RIGHT FORM ================= */
+.right-form-section {
+  background-color: #86a9c9;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 20px;
+}
+
+/* ================= FORM CARD ================= */
+.form-container {
+  width: 100%;
+  max-width: 420px;
+  background-color: #e6e6e6;
+  padding: 35px;
+  border-radius: 30px;
+  text-align: center;
+}
+
+/* ================= ICON BOX ================= */
+.icon-box {
+  width: 55px;
+  height: 55px;
+  background-color: #e06666;
+  border-radius: 10px;
+  margin: 0 auto 15px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 22px;
+}
+
+/* ================= TEXT ================= */
+.brand-title {
+  font-size: 26px;
+  margin-bottom: 10px;
+}
+
+.subtitle {
+  font-size: 14px;
+  margin-bottom: 20px;
+  color: #333;
+}
+
+/* ================= FORM ELEMENTS ================= */
+.form-group {
+  text-align: left;
+  margin-bottom: 15px;
+}
+
+.form-group label {
+  font-size: 13px;
+  margin-bottom: 5px;
+  display: block;
+}
+
+.form-group input {
+  width: 100%;
+  padding: 10px;
+  border-radius: 8px;
+  border: none;
+  outline: none;
+}
+
+/* ================= RESEND TEXT ================= */
+.resend-text {
+  font-size: 13px;
+  text-align: left;
+  margin: 10px 0 20px;
+}
+
+.resend-text span {
+  color: #e06666;
+  cursor: pointer;
+  font-weight: 500;
+  transition: color 0.3s;
+}
+
+.resend-text span:hover {
+  color: #c94f4f;
+}
+
+/* ================= BUTTON ================= */
+.submit-btn {
+  width: 100%;
+  padding: 12px;
+  border-radius: 25px;
+  border: none;
+  background-color: #2f80ed;
+  color: #fff;
+  font-size: 15px;
+  cursor: pointer;
+  margin-top: 10px;
+}
+
+.submit-btn:hover {
+  background-color: #256bd4;
+}
+
+/* ================= LINKS ================= */
+.forgot {
+  margin-top: 12px;
+  font-size: 13px;
+  cursor: pointer;
+}
+
+.forgot a {
+  text-decoration: none;
+}
+
+.forgot span {
+  color: #2f80ed;
+  cursor: pointer;
+  font-weight: 500;
+  transition: color 0.3s;
+}
+
+.forgot span:hover {
+  color: #1c5bbf;
+}
+
+.signup {
+  margin-top: 8px;
+  font-size: 13px;
+}
+
+.signup a {
+  text-decoration: none;
+}
+
+.signup span {
+  color: #2f80ed;
+  cursor: pointer;
+  font-weight: 500;
+}
+
+/* ================= RESPONSIVE ================= */
+@media (max-width: 992px) {
+  .login-wrapper {
+    grid-template-columns: 1fr;
+    grid-template-rows: 40vh auto;
+  }
+
+  .left-image-section {
+    height: 40vh;
+  }
+}
+
+@media (max-width: 576px) {
+  .form-container {
+    padding: 22px;
+    border-radius: 20px;
+  }
+}

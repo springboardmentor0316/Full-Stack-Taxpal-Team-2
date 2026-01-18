@@ -1,0 +1,140 @@
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+  font-family: Arial, sans-serif;
+}
+
+/* ================= DISABLE PAGE SCROLL ================= */
+html, body {
+  height: 100%;
+  overflow: hidden;
+}
+
+/* ================= MAIN WRAPPER ================= */
+.register-wrapper {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  height: 100vh; /* FIXED HEIGHT */
+}
+
+/* ================= LEFT IMAGE (FIXED) ================= */
+.left-image-section {
+  height: 100vh;
+  position: sticky;
+  top: 0;
+}
+
+.left-image-section img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+/* ================= RIGHT FORM (SCROLLABLE) ================= */
+.right-form-section {
+  background-color: #86a9c9;
+  padding: 20px;
+  overflow-y: auto; /* ✅ SCROLL ENABLE */
+  height: 100vh;
+  display: flex;
+  justify-content: center;
+}
+
+/* ================= FORM CARD ================= */
+.form-container {
+  width: 100%;
+  max-width: 420px;
+  background-color: #e6e6e6;
+  padding: 30px;
+  border-radius: 25px;
+  margin: auto 0; /* centers vertically when less content */
+}
+
+.form-container h2 {
+  text-align: center;
+  margin-bottom: 20px;
+}
+
+/* ================= FORM ELEMENTS ================= */
+.form-group {
+  margin-bottom: 12px;
+}
+
+.form-group label {
+  font-size: 13px;
+  display: block;
+  margin-bottom: 5px;
+}
+
+.form-group input,
+.form-group select {
+  width: 100%;
+  padding: 10px;
+  border-radius: 8px;
+  border: none;
+  outline: none;
+}
+
+/* ================= BUTTON ================= */
+.submit-btn {
+  width: 100%;
+  padding: 12px;
+  margin-top: 15px;
+  border-radius: 25px;
+  border: none;
+  background-color: #2f80ed;
+  color: #fff;
+  cursor: pointer;
+}
+
+.submit-btn:hover {
+  background-color: #256bd4;
+}
+
+/* ================= LOGIN LINK ================= */
+.login-link {
+  margin-top: 12px;
+  text-align: center;
+  font-size: 13px;
+}
+
+.login-link a {
+  text-decoration: none;
+}
+
+.login-link span {
+  color: #2f80ed;
+  cursor: pointer;
+  font-weight: 500;
+  transition: color 0.3s;
+}
+
+.login-link span:hover {
+  color: #1c5bbf;
+}
+
+/* ================= RESPONSIVE ================= */
+
+/* Tablet & Mobile */
+@media (max-width: 992px) {
+  .register-wrapper {
+    grid-template-columns: 1fr;
+  }
+
+  .left-image-section {
+    display: none; /* optional: hide image on mobile */
+  }
+
+  .right-form-section {
+    height: 100vh;
+  }
+}
+
+/* Small Mobile */
+@media (max-width: 576px) {
+  .form-container {
+    padding: 20px;
+    border-radius: 18px;
+  }
+}
