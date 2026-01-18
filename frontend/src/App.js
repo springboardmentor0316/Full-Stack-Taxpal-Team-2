@@ -1,28 +1,29 @@
-import { BrowserRouter, Routes, Route } from "react-router-dom"
-import { AuthProvider } from "./context/AuthContext"
+import React from "react";
+import { BrowserRouter as Router, Routes, Route } from "react-router-dom";
 
-import Login from "./pages/Login"
-import Register from "./pages/Register"
-import ForgotPassword from "./pages/ForgotPassword"
-import VerifyCode from "./pages/VerifyCode"
-import SetPassword from "./pages/SetPassword"
-import Dashboard from "./pages/Dashboard"
+import Login from "./pages/Login";
+import Register from "./pages/Register";
+import Dashboard from "./pages/Dashboard";
+import PrivateRoute from "./utils/PrivateRoute";
 
 function App() {
   return (
-    <AuthProvider>
-      <BrowserRouter>
-        <Routes>
-          <Route path="/" element={<Login />} />
-          <Route path="/Register" element={<Register />} />
-          <Route path="/ForgotPassword" element={<ForgotPassword />} />
-          <Route path="/VerifyCode" element={<VerifyCode />} />
-          <Route path="/SetPassword" element={<SetPassword />} />
-          <Route path="/Dashboard" element={<Dashboard />} />
-        </Routes>
-      </BrowserRouter>
-    </AuthProvider>
-  )
+    <Router>
+      <Routes>
+        <Route path="/" element={<Login />} />
+        <Route path="/register" element={<Register />} />
+
+        <Route
+          path="/dashboard"
+          element={
+            <PrivateRoute>
+              <Dashboard />
+            </PrivateRoute>
+          }
+        />
+      </Routes>
+    </Router>
+  );
 }
 
-export default App
+export default App;

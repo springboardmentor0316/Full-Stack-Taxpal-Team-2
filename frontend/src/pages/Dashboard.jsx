@@ -1,89 +1,57 @@
-"use client"
-
-import { useState, useEffect } from "react"
-import { useNavigate } from "react-router-dom"
-import { useAuth } from "../context/AuthContext"
-import "../styles/Dashboard.css"
+import React from "react";
+import "../styles/Dashboard.css";
+import { logout } from "../utils/auth";
 
 const Dashboard = () => {
-  const { token, user: contextUser, logout } = useAuth()
-  const navigate = useNavigate()
-  const [user, setUser] = useState(null)
-
-  useEffect(() => {
-    if (!token) {
-      navigate("/")
-    } else {
-      setUser(contextUser)
-    }
-  }, [token, contextUser, navigate])
-
-  const handleLogout = () => {
-    logout()
-    navigate("/")
-  }
-
-  if (!user) {
-    return <div>Loading...</div>
-  }
-
   return (
     <div className="dashboard-wrapper">
-      <div className="dashboard-container">
-        {/* HEADER */}
-        <div className="dashboard-header">
-          <h1>Welcome to TaxPal</h1>
-          <button className="logout-btn" onClick={handleLogout}>
+      {/* Sidebar */}
+      <aside className="sidebar">
+        <h2 className="logo">TaxPal</h2>
+
+        <ul className="menu">
+          <li className="active">Dashboard</li>
+          <li>Income</li>
+          <li>Expenses</li>
+          <li>Reports</li>
+          <li onClick={logout} className="logout">
             Logout
-          </button>
-        </div>
+          </li>
+        </ul>
+      </aside>
 
-        {/* USER PROFILE SECTION */}
-        <div className="user-profile-section">
-          <div className="profile-card">
-            <div className="profile-image-container">
-              {user.profileImage ? (
-                <img src={user.profileImage || "/placeholder.svg"} alt="Profile" className="profile-image" />
-              ) : (
-                <div className="default-avatar">{user.fullName ? user.fullName.charAt(0).toUpperCase() : "U"}</div>
-              )}
-            </div>
+      {/* Main Content */}
+      <main className="main-content">
+        <h1>Dashboard</h1>
 
-            <div className="profile-info">
-              <h2>{user.fullName || "User"}</h2>
-              <p className="username">@{user.username}</p>
-              <p className="email">{user.email}</p>
-              {user.country && <p className="country">📍 {user.country}</p>}
-              {user.incomeBracket && <p className="income">💰 {user.incomeBracket}</p>}
-            </div>
+        {/* Summary Cards */}
+        <div className="cards">
+          <div className="card">
+            <h3>Total Income</h3>
+            <p>₹ 50,000</p>
+          </div>
+
+          <div className="card">
+            <h3>Total Expenses</h3>
+            <p>₹ 20,000</p>
+          </div>
+
+          <div className="card">
+            <h3>Savings</h3>
+            <p>₹ 30,000</p>
           </div>
         </div>
 
-        {/* SUCCESS MESSAGE */}
-        <div className="success-message">
-          <div className="success-icon">✓</div>
-          <h3>Login Successful!</h3>
-          <p>You have successfully logged in to your TaxPal account.</p>
-        </div>
-
-        {/* QUICK STATS */}
-        <div className="quick-stats">
-          <div className="stat-card">
-            <h4>Account Status</h4>
-            <p className="status-active">Active</p>
-          </div>
-          <div className="stat-card">
-            <h4>Member Since</h4>
-            <p>{new Date().toLocaleDateString()}</p>
-          </div>
-          <div className="stat-card">
-            <h4>Email Verified</h4>
-            <p className="verified">✓ Verified</p>
+        {/* Chart Placeholder */}
+        <div className="chart-box">
+          <h3>Expense Breakdown</h3>
+          <div className="chart-placeholder">
+            Chart will be added later
           </div>
         </div>
-      </div>
+      </main>
     </div>
-  )
-}
+  );
+};
 
-export default Dashboard
+export default Dashboard;
