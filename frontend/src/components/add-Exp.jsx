@@ -1,7 +1,8 @@
 import React, { useState } from "react";
+import { addExpense } from "../api/financeApi";
 import "./comstyles/add-Inc-Exp-Form.css";
 
-export default function AddExpenseForm({ onClose, onSave }) {
+export default function AddExpenseForm({ onClose }) {
   const [formData, setFormData] = useState({
     description: "",
     amount: "",
@@ -17,21 +18,34 @@ export default function AddExpenseForm({ onClose, onSave }) {
     });
   };
 
-  const handleSubmit = () => {
-    onSave && onSave(formData);
-  };
+  // 🔴 MUST be async
+  const handleSubmit = async (e) => {
+    e.preventDefault();
 
-  const handleCancel = () => {
-    // Reset form data
-    setFormData({
-      description: "",
-      amount: "",
-      category: "",
-      date: "",
-      notes: "",
-    });
-    // Call onClose if provided
-    onClose && onClose();
+    try {
+      await addExpense({
+        description: formData.description,
+        amount: Number(formData.amount),
+        category: formData.category,
+        date: formData.date,
+        notes: formData.notes,
+      });
+
+      alert("Expense saved successfully");
+
+      setFormData({
+        description: "",
+        amount: "",
+        category: "",
+        date: "",
+        notes: "",
+      });
+
+      onClose && onClose();
+    } catch (error) {
+      console.error("Expense save error:", error);
+      alert("Failed to save expense");
+    }
   };
 
   return (
@@ -42,52 +56,43 @@ export default function AddExpenseForm({ onClose, onSave }) {
             <h2 className="form-card-title">Add Expense</h2>
           </div>
 
-          <div className="form-content">
+          <form className="form-content" onSubmit={handleSubmit}>
             <div className="form-row">
               <div className="form-group">
-                <label className="form-label">Description</label>
+                <label>Description</label>
                 <input
-                  type="text"
                   name="description"
-                  className="form-input"
                   value={formData.description}
                   onChange={handleChange}
-                  placeholder="Groceries, Rent..."
                 />
               </div>
 
               <div className="form-group">
-                <label className="form-label">Amount</label>
+                <label>Amount</label>
                 <input
                   type="number"
                   name="amount"
-                  className="form-input"
                   value={formData.amount}
                   onChange={handleChange}
-                  placeholder="₹"
                 />
               </div>
             </div>
 
             <div className="form-row">
               <div className="form-group">
-                <label className="form-label">Category</label>
+                <label>Category</label>
                 <input
-                  type="text"
                   name="category"
-                  className="form-input"
                   value={formData.category}
                   onChange={handleChange}
-                  placeholder="Food, Travel..."
                 />
               </div>
 
               <div className="form-group">
-                <label className="form-label">Date</label>
+                <label>Date</label>
                 <input
                   type="date"
                   name="date"
-                  className="form-input"
                   value={formData.date}
                   onChange={handleChange}
                 />
@@ -95,26 +100,24 @@ export default function AddExpenseForm({ onClose, onSave }) {
             </div>
 
             <div className="form-group">
-              <label className="form-label">Notes</label>
+              <label>Notes</label>
               <textarea
                 name="notes"
-                className="form-textarea"
-                rows="3"
                 value={formData.notes}
                 onChange={handleChange}
-                placeholder="Optional notes..."
               />
             </div>
 
             <div className="form-actions">
-              <button className="btn-cancel" onClick={handleCancel}>
+              <button type="button" onClick={onClose} className="btn-cancel">
                 Cancel
               </button>
-              <button className="btn-save" onClick={handleSubmit}>
+              <button type="submit" className="btn-save">
                 Save
               </button>
             </div>
-          </div>
+          </form>
+
         </div>
       </div>
     </div>
