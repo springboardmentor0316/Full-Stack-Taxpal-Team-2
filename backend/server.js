@@ -6,6 +6,7 @@ require("dotenv").config();
 const authRoutes = require("./routes/authRoutes");
 const addTransaction = require("./routes/addtransaction");
 const budgetRoutes = require("./routes/budgetRoutes");
+const alertRoutes = require("./routes/alertRoutes");
 const errorHandler = require("./middleware/errorHandler");
 
 const app = express();
@@ -43,6 +44,7 @@ mongoose
 app.use("/api/auth", authRoutes);
 app.use("/api/transaction", addTransaction);
 app.use("/api/budget", budgetRoutes);
+app.use("/api/alerts", alertRoutes);
 
 // Health check
 app.get("/api/health", (req, res) => {

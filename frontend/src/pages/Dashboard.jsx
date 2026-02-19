@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useRef } from "react";
 import { useNavigate } from "react-router-dom";
 import { useAuth } from "../context/AuthContext";
 import {
@@ -47,6 +47,7 @@ import { addIncome, addExpense } from "../api/transactionApi";
 import { getTransactions } from "../api/transactionApi";
 import { createBudget, getBudgets } from "../api/budgetApi";
 import { authApi } from "../api/authApi";
+import { alertsApi } from "../api/alertsApi";
 
 export default function TaxPalDashboard() {
   const [loading, setLoading] = useState(true);
@@ -59,6 +60,8 @@ export default function TaxPalDashboard() {
   const [activeNav, setActiveNav] = useState("dashboard");
   const [alerts, setAlerts] = useState([]);
   const [showAlerts, setShowAlerts] = useState(false);
+  const [popupAlert, setPopupAlert] = useState(null); // for transient notifications
+  const prevAlertsRef = useRef([]); // to compare new alerts
   
   // Profile states
   const [isEditingProfile, setIsEditingProfile] = useState(false);
@@ -69,7 +72,9 @@ export default function TaxPalDashboard() {
     phone: "",
     location: "",
     bio: "",
+    profileImage: null,
   });
+  const fileInputRef = useRef(null); // for photo upload dialog
 
   const [budgetForm, setBudgetForm] = useState({
     category: "",
@@ -114,7 +119,10 @@ export default function TaxPalDashboard() {
         phone: contextUser?.phone || "",
         location: contextUser?.location || "",
         bio: contextUser?.bio || "",
+        profileImage: contextUser?.profileImage || null,
       });
+      // load any existing alerts
+      fetchAlerts();
     }
   }, [token, contextUser, navigate]);
 
@@ -131,24 +139,60 @@ export default function TaxPalDashboard() {
     }
   };
 
+  // close the alerts dropdown when clicking outside
+  const alertsRef = React.useRef(null);
+  React.useEffect(() => {
+    function handleClickOutside(e) {
+      if (
+        alertsRef.current &&
+        !alertsRef.current.contains(e.target) &&
+        showAlerts
+      ) {
+        setShowAlerts(false);
+      }
+    }
+    document.addEventListener("mousedown", handleClickOutside);
+    return () => document.removeEventListener("mousedown", handleClickOutside);
+  }, [showAlerts]);
+
+  // auto-hide popup notification after timeout or click anywhere
+  React.useEffect(() => {
+    if (!popupAlert) return;
+    const handler = () => setPopupAlert(null);
+    document.addEventListener("mousedown", handler);
+    const timer = setTimeout(() => setPopupAlert(null), 5000);
+    return () => {
+      document.removeEventListener("mousedown", handler);
+      clearTimeout(timer);
+    };
+  }, [popupAlert]);
+
   const fetchAlerts = async () => {
     try {
       console.log("[v0] Fetching alerts from backend");
-      // Get mock alerts for now - update endpoint when backend is ready
-      const mockAlerts = [
-        { id: 1, message: "Budget alert: Groceries budget is 80% used", type: "warning", read: false, date: new Date() },
-        { id: 2, message: "New expense recorded: Office supplies - ₹5,000", type: "info", read: false, date: new Date(Date.now() - 3600000) },
-        { id: 3, message: "Tax deadline reminder: Q1 tax due next week", type: "urgent", read: true, date: new Date(Date.now() - 86400000) },
-      ];
-      setAlerts(mockAlerts);
+      const data = await alertsApi.getAlerts(token);
+      // compare to previous list and show popup for newly arrived alerts
+      const previous = prevAlertsRef.current;
+      const newOnes = data.filter(
+        (a) => !previous.find((p) => p.id === a.id)
+      );
+      if (newOnes.length > 0) {
+        // show the most recent new alert popup
+        setPopupAlert(newOnes[0]);
+      }
+      setAlerts(data);
+      prevAlertsRef.current = data;
+      return data;
     } catch (error) {
       console.error("[v0] Error fetching alerts:", error);
+      return [];
     }
   };
 
   const markAlertAsRead = async (alertId) => {
     try {
       console.log("[v0] Marking alert as read:", alertId);
+      await alertsApi.markAsRead(token, alertId);
       setAlerts((prevAlerts) =>
         prevAlerts.map((alert) =>
           alert.id === alertId ? { ...alert, read: true } : alert
@@ -174,6 +218,15 @@ export default function TaxPalDashboard() {
       setTransactions((prev) => [res.data, ...prev]);
       alert("Expense added successfully ✅");
       setShowExpensePopup(false);
+      // refresh alerts from server to pick up the new transaction alert
+      const oldAlerts = alerts;
+      const updated = await fetchAlerts();
+      const newOnes = updated.filter(
+        (a) => !oldAlerts.find((b) => b.id === a.id)
+      );
+      if (newOnes.length > 0) {
+        setPopupAlert(newOnes[0]);
+      }
     } catch (error) {
       console.error("Error adding expense:", error);
       alert("Failed to add expense ❌");
@@ -195,6 +248,14 @@ export default function TaxPalDashboard() {
       setTransactions((prev) => [res.data, ...prev]);
       alert("Income added successfully ✅");
       setShowIncomePopup(false);
+      const oldAlerts = alerts;
+      const updated = await fetchAlerts();
+      const newOnes = updated.filter(
+        (a) => !oldAlerts.find((b) => b.id === a.id)
+      );
+      if (newOnes.length > 0) {
+        setPopupAlert(newOnes[0]);
+      }
     } catch (error) {
       console.error("Error adding income:", error);
       alert("Failed to add income ❌");
@@ -234,9 +295,32 @@ export default function TaxPalDashboard() {
   };
 
   const handlePhotoUpload = () => {
-    console.log("Photo upload clicked");
-    // 🔜 Implement photo upload
-    alert("Photo upload feature coming soon!");
+    // open file selector
+    if (fileInputRef.current) {
+      fileInputRef.current.click();
+    }
+  };
+
+  const handleFileSelected = async (e) => {
+    const file = e.target.files[0];
+    if (!file) return;
+    const reader = new FileReader();
+    reader.onloadend = async () => {
+      const base64 = reader.result;
+      // update local state immediately
+      setProfileData((prev) => ({ ...prev, profileImage: base64 }));
+      setUser((prev) => ({ ...prev, profileImage: base64 }));
+      try {
+        await authApi.updateProfile(token, { profileImage: base64 });
+        alert("Photo uploaded successfully ✅");
+      } catch (err) {
+        console.error("[v0] Error uploading photo", err);
+        alert("Failed to upload photo ❌");
+      }
+    };
+    reader.readAsDataURL(file);
+    // clear input so same file can be reselected later if needed
+    e.target.value = null;
   };
 
   const handleBudgetChange = (e) => {
@@ -1066,7 +1150,15 @@ End of Report
                 <div className="profile-main-info">
                   <div className="profile-avatar-container">
                     <div className="profile-avatar-xl">
-                      {user?.fullName ? user.fullName.charAt(0).toUpperCase() : "U"}
+                      {user?.profileImage ? (
+                        <img
+                          src={user.profileImage}
+                          alt="avatar"
+                          style={{ width: "100%", height: "100%", borderRadius: "50%" }}
+                        />
+                      ) : (
+                        user?.fullName ? user.fullName.charAt(0).toUpperCase() : "U"
+                      )}
                     </div>
                     <button className="avatar-change-btn" onClick={handlePhotoUpload}>
                       <Camera size={20} />
@@ -1089,6 +1181,14 @@ End of Report
                   </div>
                 </div>
                 
+                {/* hidden file input for avatar selection */}
+                <input
+                  type="file"
+                  accept="image/*"
+                  ref={fileInputRef}
+                  style={{ display: "none" }}
+                  onChange={handleFileSelected}
+                />
                 {/* Stats Cards in Banner */}
                 <div className="profile-stats-banner">
                   <div className="stat-banner-item">
@@ -1435,6 +1535,12 @@ End of Report
 
   return (
     <div className="dashboard-container">
+      {/* transient popup notification */}
+      {popupAlert && (
+        <div className="alert-popup">
+          {popupAlert.message}
+        </div>
+      )}
       {sidebarOpen && (
         <div className="mobile-overlay" onClick={() => setSidebarOpen(false)} />
       )}
@@ -1470,7 +1576,15 @@ End of Report
               style={{ cursor: "pointer" }}
             >
               <div className="user-avatar">
-                {user.fullName ? user.fullName.charAt(0).toUpperCase() : "U"}
+                {user.profileImage ? (
+                  <img
+                    src={user.profileImage}
+                    alt="avatar"
+                    style={{ width: "100%", height: "100%", borderRadius: "50%" }}
+                  />
+                ) : (
+                  user.fullName ? user.fullName.charAt(0).toUpperCase() : "U"
+                )}
               </div>
               <div className="user-info">
                 <p className="user-name">{user.fullName || "User"}</p>
@@ -1509,7 +1623,7 @@ End of Report
                 </button>
               )}
 
-              <div style={{ position: "relative" }}>
+              <div ref={alertsRef} style={{ position: "relative" }}>
                 <button
                   className="notification-button"
                   onClick={handleNotificationClick}

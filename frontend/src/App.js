@@ -10,7 +10,6 @@ import SetPassword from "./pages/SetPassword"
 import Dashboard from "./pages/Dashboard"
 import AddExpenseForm from "./components/add-Exp"
 import AddIncomeForm from "./components/add-Inc"
-import ProfilePage from "./components/profile"
 
 function App() {
   return (
@@ -23,7 +22,6 @@ function App() {
           <Route path="/ForgotPassword" element={<ForgotPassword />} />
           <Route path="/VerifyCode" element={<VerifyCode />} />
           <Route path="/SetPassword" element={<SetPassword />} />
-          <Route path="/ProfilePage" element={<ProfilePage />} />
 
 
           {/* Protected Routes - User must be logged in */}

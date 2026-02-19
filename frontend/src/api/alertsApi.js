@@ -73,4 +73,16 @@ export const alertsApi = {
       },
     });
   },
+
+  // create a new alert (optional - backend may auto-create for transactions)
+  createAlert: async (token, message, type = "info") => {
+    console.log("[v0] Create alert API call:", message, type);
+    return fetchApi(`/alerts`, {
+      method: "POST",
+      headers: {
+        "Authorization": `Bearer ${token}`,
+      },
+      body: JSON.stringify({ message, type }),
+    });
+  },
 };

@@ -197,9 +197,26 @@
 }
 
 .user-info {
-  flex: 1;
-  min-width: 0;
+  flex: 1; }
+
+/* transient popup alert */
+.alert-popup {
+  position: fixed;
+  top: 20px;
+  right: 20px;
+  background-color: #fef3c7;
+  border: 1px solid #fde68a;
+  padding: 12px 20px;
+  border-radius: 8px;
+  box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+  z-index: 2000;
+  font-size: 14px;
+  color: #92400e;
+  max-width: 300px;
 }
+
+  min-width: 0;
+
 
 .user-name {
   font-weight: 600;
