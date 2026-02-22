@@ -1,3 +1,4 @@
+// backend/server.js
 const express = require("express");
 const mongoose = require("mongoose");
 const cors = require("cors");
@@ -21,8 +22,10 @@ const corsOptions = {
 };
 
 app.use(cors(corsOptions));
-app.use(express.json());
-app.use(express.urlencoded({ extended: true }));
+
+// IMPORTANT: Body parsers must be before routes
+app.use(express.json({ limit: '10mb' }));
+app.use(express.urlencoded({ extended: true, limit: '10mb' }));
 
 console.log("[v0] Server Configuration:");
 console.log("[v0] Frontend URL:", process.env.FRONTEND_URL || "http://localhost:3000");
@@ -46,7 +49,7 @@ app.use("/api/transaction", addTransaction);
 app.use("/api/budget", budgetRoutes);
 app.use("/api/alerts", alertRoutes);
 
-// Health check
+// Health check endpoint
 app.get("/api/health", (req, res) => {
   res.json({ 
     message: "Server is running", 
@@ -55,16 +58,35 @@ app.get("/api/health", (req, res) => {
   });
 });
 
-// 404 handler
-app.use((req, res) => {
-  res.status(404).json({ message: "Route not found" });
+// Root endpoint
+app.get("/", (req, res) => {
+  res.json({ 
+    message: "TaxPal API Server", 
+    version: "1.0.0",
+    endpoints: {
+      auth: "/api/auth",
+      transactions: "/api/transaction",
+      budgets: "/api/budget",
+      alerts: "/api/alerts",
+      health: "/api/health"
+    }
+  });
 });
 
-// Error middleware
+// 404 handler for undefined routes
+app.use((req, res) => {
+  res.status(404).json({ 
+    message: "Route not found",
+    path: req.originalUrl 
+  });
+});
+
+// Error handling middleware
 app.use(errorHandler);
 
 const PORT = process.env.PORT || 5000;
 app.listen(PORT, () => {
   console.log(`[v0] 🚀 Server running on port ${PORT}`);
   console.log(`[v0] 🌐 API Base URL: http://localhost:${PORT}/api`);
+  console.log(`[v0] 📝 Environment: ${process.env.NODE_ENV || 'development'}`);
 });

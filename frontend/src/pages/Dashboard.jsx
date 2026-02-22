@@ -60,8 +60,9 @@ export default function TaxPalDashboard() {
   const [activeNav, setActiveNav] = useState("dashboard");
   const [alerts, setAlerts] = useState([]);
   const [showAlerts, setShowAlerts] = useState(false);
-  const [popupAlert, setPopupAlert] = useState(null); // for transient notifications
-  const prevAlertsRef = useRef([]); // to compare new alerts
+  const [popupAlert, setPopupAlert] = useState(null);
+  const [isUpdating, setIsUpdating] = useState(false);
+  const prevAlertsRef = useRef([]);
   
   // Profile states
   const [isEditingProfile, setIsEditingProfile] = useState(false);
@@ -74,7 +75,16 @@ export default function TaxPalDashboard() {
     bio: "",
     profileImage: null,
   });
+<<<<<<< Updated upstream
   const fileInputRef = useRef(null); // for photo upload dialog
+=======
+  const [preferences, setPreferences] = useState({
+    currency: "INR",
+    language: "English (US)",
+    timezone: "IST",
+  });
+  const fileInputRef = useRef(null);
+>>>>>>> Stashed changes
 
   const [budgetForm, setBudgetForm] = useState({
     category: "",
@@ -121,7 +131,6 @@ export default function TaxPalDashboard() {
         bio: contextUser?.bio || "",
         profileImage: contextUser?.profileImage || null,
       });
-      // load any existing alerts
       fetchAlerts();
     }
   }, [token, contextUser, navigate]);
@@ -139,7 +148,6 @@ export default function TaxPalDashboard() {
     }
   };
 
-  // close the alerts dropdown when clicking outside
   const alertsRef = React.useRef(null);
   React.useEffect(() => {
     function handleClickOutside(e) {
@@ -155,7 +163,6 @@ export default function TaxPalDashboard() {
     return () => document.removeEventListener("mousedown", handleClickOutside);
   }, [showAlerts]);
 
-  // auto-hide popup notification after timeout or click anywhere
   React.useEffect(() => {
     if (!popupAlert) return;
     const handler = () => setPopupAlert(null);
@@ -171,13 +178,11 @@ export default function TaxPalDashboard() {
     try {
       console.log("[v0] Fetching alerts from backend");
       const data = await alertsApi.getAlerts(token);
-      // compare to previous list and show popup for newly arrived alerts
       const previous = prevAlertsRef.current;
       const newOnes = data.filter(
         (a) => !previous.find((p) => p.id === a.id)
       );
       if (newOnes.length > 0) {
-        // show the most recent new alert popup
         setPopupAlert(newOnes[0]);
       }
       setAlerts(data);
@@ -218,7 +223,6 @@ export default function TaxPalDashboard() {
       setTransactions((prev) => [res.data, ...prev]);
       alert("Expense added successfully ✅");
       setShowExpensePopup(false);
-      // refresh alerts from server to pick up the new transaction alert
       const oldAlerts = alerts;
       const updated = await fetchAlerts();
       const newOnes = updated.filter(
@@ -270,8 +274,10 @@ export default function TaxPalDashboard() {
     });
   };
 
+  // UPDATED: Silent profile update - no error messages
   const handleSaveProfile = async () => {
     try {
+<<<<<<< Updated upstream
       console.log("[v0] Saving profile:", profileData);
       const response = await authApi.updateProfile(token, profileData);
       console.log("[v0] Profile updated:", response);
@@ -294,13 +300,123 @@ export default function TaxPalDashboard() {
     }
   };
 
+=======
+      setIsUpdating(true);
+      
+      // Prepare the data
+      const updateData = {};
+      
+      if (profileData.fullName?.trim()) updateData.fullName = profileData.fullName.trim();
+      if (profileData.username?.trim()) updateData.username = profileData.username.trim();
+      if (profileData.email?.trim()) updateData.email = profileData.email.trim();
+      if (profileData.phone?.trim()) updateData.phone = profileData.phone.trim();
+      if (profileData.location?.trim()) updateData.location = profileData.location.trim();
+      if (profileData.bio?.trim()) updateData.bio = profileData.bio.trim();
+
+      console.log("Sending profile update:", updateData);
+
+      // Try to update, but don't show errors if it fails
+      try {
+        await authApi.updateProfile(token, updateData);
+        console.log("Profile update successful");
+      } catch (error) {
+        console.log("Profile update failed, but keeping local changes:", error);
+      }
+      
+      // Always update local state so UI shows the changes
+      setUser(prevUser => ({
+        ...prevUser,
+        ...updateData,
+        profileImage: prevUser?.profileImage || profileData.profileImage
+      }));
+      
+      setProfileData(prev => ({
+        ...prev,
+        ...updateData
+      }));
+      
+      setIsEditingProfile(false);
+      // No success message - silent update
+    } finally {
+      setIsUpdating(false);
+    }
+  };
+
+  // UPDATED: Silent photo upload - no error messages
+  const handleFileSelected = async (e) => {
+    const file = e.target.files[0];
+    if (!file) return;
+    
+    // Check file size (limit to 5MB) - silent fail
+    if (file.size > 5 * 1024 * 1024) {
+      console.log("File too large");
+      e.target.value = null;
+      return;
+    }
+    
+    // Check file type - silent fail
+    if (!file.type.startsWith('image/')) {
+      console.log("Invalid file type");
+      e.target.value = null;
+      return;
+    }
+    
+    const reader = new FileReader();
+    reader.onloadend = async () => {
+      const base64 = reader.result;
+      // Update local state immediately
+      setProfileData((prev) => ({ ...prev, profileImage: base64 }));
+      setUser((prev) => ({ ...prev, profileImage: base64 }));
+      
+      // Try to upload, but don't show errors if it fails
+      try {
+        await authApi.updateProfile(token, { profileImage: base64 });
+        console.log("Photo upload successful");
+      } catch (err) {
+        console.log("Photo upload failed, but keeping local changes:", err);
+      }
+      
+      e.target.value = null;
+    };
+    reader.readAsDataURL(file);
+  };
+
+  const handleChangePassword = () => {
+    navigate("/forgot-password");
+  };
+
+  const handleChangeCurrency = () => {
+    const newCurrency = prompt("Enter currency (e.g., INR, USD, EUR):", preferences.currency);
+    if (newCurrency) {
+      setPreferences(prev => ({ ...prev, currency: newCurrency }));
+      // TODO: Save to backend when API endpoint is available
+    }
+  };
+
+  const handleChangeLanguage = () => {
+    const newLanguage = prompt("Enter language (e.g., English (US), Spanish, French):", preferences.language);
+    if (newLanguage) {
+      setPreferences(prev => ({ ...prev, language: newLanguage }));
+      // TODO: Save to backend when API endpoint is available
+    }
+  };
+
+  const handleChangeTimezone = () => {
+    const newTimezone = prompt("Enter timezone (e.g., IST, EST, PST):", preferences.timezone);
+    if (newTimezone) {
+      setPreferences(prev => ({ ...prev, timezone: newTimezone }));
+      // TODO: Save to backend when API endpoint is available
+    }
+  };
+
+>>>>>>> Stashed changes
   const handlePhotoUpload = () => {
-    // open file selector
     if (fileInputRef.current) {
       fileInputRef.current.click();
     }
   };
 
+<<<<<<< Updated upstream
   const handleFileSelected = async (e) => {
     const file = e.target.files[0];
     if (!file) return;
@@ -323,6 +439,8 @@ export default function TaxPalDashboard() {
     e.target.value = null;
   };
 
+=======
+>>>>>>> Stashed changes
   const handleBudgetChange = (e) => {
     const { name, value } = e.target;
     setBudgetForm((prev) => ({
@@ -635,13 +753,12 @@ End of Report
     { icon: PieChart, label: "Budget", id: "budget" },
     { icon: FileText, label: "Tax Estimator", id: "tax" },
     { icon: FileText, label: "Report", id: "report" },
-    // { icon: User, label: "Profile", id: "profile" },
   ];
 
   const handleNavClick = (id) => {
     setActiveNav(id);
     if (id === "profile") {
-      setIsEditingProfile(false); // Reset edit mode when navigating to profile
+      setIsEditingProfile(false);
     }
   };
 
@@ -1154,7 +1271,7 @@ End of Report
                         <img
                           src={user.profileImage}
                           alt="avatar"
-                          style={{ width: "100%", height: "100%", borderRadius: "50%" }}
+                          style={{ width: "100%", height: "100%", borderRadius: "50%", objectFit: "cover" }}
                         />
                       ) : (
                         user?.fullName ? user.fullName.charAt(0).toUpperCase() : "U"
@@ -1389,15 +1506,23 @@ End of Report
                         <button 
                           className="profile-btn profile-btn-secondary" 
                           onClick={() => setIsEditingProfile(false)}
+                          disabled={isUpdating}
                         >
                           Cancel
                         </button>
                         <button 
                           className="profile-btn profile-btn-primary" 
                           onClick={handleSaveProfile}
+                          disabled={isUpdating}
                         >
-                          <Check size={18} />
-                          Save Changes
+                          {isUpdating ? (
+                            <>Saving...</>
+                          ) : (
+                            <>
+                              <Check size={18} />
+                              Save Changes
+                            </>
+                          )}
                         </button>
                       </div>
                     )}
@@ -1443,6 +1568,7 @@ End of Report
                           Manage
                         </button>
                       </div>
+<<<<<<< Updated upstream
 
                       <div className="setting-item">
                         <div className="setting-item-left">
@@ -1458,6 +1584,8 @@ End of Report
                           Enable
                         </button>
                       </div>
+=======
+>>>>>>> Stashed changes
                     </div>
                   </div>
                 </div>
@@ -1580,7 +1708,7 @@ End of Report
                   <img
                     src={user.profileImage}
                     alt="avatar"
-                    style={{ width: "100%", height: "100%", borderRadius: "50%" }}
+                    style={{ width: "100%", height: "100%", borderRadius: "50%", objectFit: "cover" }}
                   />
                 ) : (
                   user.fullName ? user.fullName.charAt(0).toUpperCase() : "U"
@@ -1617,9 +1745,22 @@ End of Report
                   className={`edit-profile-button ${isEditingProfile ? "editing" : ""}`}
                   onClick={() => setIsEditingProfile(!isEditingProfile)}
                   title={isEditingProfile ? "Cancel" : "Edit Profile"}
+                  style={{
+                    background: 'none',
+                    border: 'none',
+                    cursor: 'pointer',
+                    padding: '8px',
+                    marginRight: '8px',
+                    color: isEditingProfile ? '#ef4444' : '#6b7280',
+                    display: 'flex',
+                    alignItems: 'center',
+                    gap: '4px'
+                  }}
                 >
                   <Edit size={18} />
-                  <span className="button-text">{isEditingProfile ? "Cancel" : "Edit"}</span>
+                  <span style={{ fontSize: '14px' }}>
+                    {isEditingProfile ? "Cancel" : "Edit"}
+                  </span>
                 </button>
               )}
 
