@@ -3,7 +3,7 @@
 import { useState, useEffect } from "react"
 import "../styles/SetPassword.css"
 // SVG image - using placeholder fallback
-// import img1 from "../assets/img1.svg"
+import img1 from "../assets/img1.svg"
 import { Link, useNavigate, useSearchParams } from "react-router-dom"
 import { authApi } from "../api/authApi"
 
@@ -59,7 +59,7 @@ const SetPassword = () => {
     <div className="login-wrapper">
       {/* LEFT IMAGE SECTION */}
       <div className="left-image-section">
-        <img src="/placeholder.svg" alt="TaxPal" />
+        <img src={img1 || "/placeholder.svg"}  alt="TaxPal" />
       </div>
 
       {/* RIGHT FORM SECTION */}

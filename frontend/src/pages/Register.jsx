@@ -3,7 +3,7 @@
 import { useState } from "react"
 import "../styles/Register.css"
 // SVG image - using placeholder fallback
-// import img1 from "../assets/img1.svg"
+import img1 from "../assets/img1.svg"
 import { Link, useNavigate } from "react-router-dom"
 import { authApi } from "../api/authApi"
 import { useAuth } from "../context/AuthContext"
@@ -22,6 +22,8 @@ const Register = () => {
   const [error, setError] = useState("")
   const navigate = useNavigate()
   const { setAuth } = useAuth()
+  const [showPassword, setShowPassword] = useState(false)
+  const [showConfirmPassword, setShowConfirmPassword] = useState(false)
 
   const countries = [
     "Afghanistan",
@@ -250,7 +252,7 @@ const Register = () => {
   return (
     <div className="register-wrapper">
       <div className="left-image-section">
-        <img src="/placeholder.svg" alt="Taxpal" />
+      <img src={img1 || "/placeholder.svg"}  alt="Taxpal" />
       </div>
 
       <div className="right-form-section">
@@ -296,29 +298,45 @@ const Register = () => {
               />
             </div>
 
-            <div className="form-group">
-              <label>Password</label>
+            <div className="form-group password-group">
+            <label>Password</label>
+            <div className="password-input-wrapper">
               <input
-                type="password"
+                type={showPassword ? "text" : "password"}
                 name="password"
                 placeholder="Enter your password"
                 value={formData.password}
                 onChange={handleChange}
                 disabled={loading}
               />
+              <span
+                className="eye-icon"
+                onClick={() => setShowPassword((prev) => !prev)}
+              >
+                {showPassword ? "🙈" : "👁"}
+              </span>
             </div>
+          </div>
 
-            <div className="form-group">
-              <label>Confirm Password</label>
+          <div className="form-group password-group">
+            <label>Confirm Password</label>
+            <div className="password-input-wrapper">
               <input
-                type="password"
+                type={showConfirmPassword ? "text" : "password"}
                 name="confirmPassword"
                 placeholder="Re-enter your password"
                 value={formData.confirmPassword}
                 onChange={handleChange}
                 disabled={loading}
               />
+              <span
+                className="eye-icon"
+                onClick={() => setShowConfirmPassword((prev) => !prev)}
+              >
+                {showConfirmPassword ? "🙈" : "👁"}
+              </span>
             </div>
+          </div>
 
             <div className="form-group">
               <label>Country</label>

@@ -61,7 +61,7 @@ export default function TaxPalDashboard() {
   const [alerts, setAlerts] = useState([]);
   const [showAlerts, setShowAlerts] = useState(false);
   const [popupAlert, setPopupAlert] = useState(null); // for transient notifications
-  const prevAlertsRef = useRef([]); // to compare new alerts
+  const prevAlertsRef = useRef([]); 
   
   // Profile states
   const [isEditingProfile, setIsEditingProfile] = useState(false);
@@ -105,6 +105,13 @@ export default function TaxPalDashboard() {
   const { token, user: contextUser, logout } = useAuth();
   const navigate = useNavigate();
   const [user, setUser] = useState(null);
+  const [twoFactorEnabled, setTwoFactorEnabled] = useState(false);
+  const [preferences, setPreferences] = useState({
+    currency: "INR - Indian Rupee (₹)",
+    currencySymbol: "₹",
+    language: "English (US)",
+    timeZone: "IST (Indian Standard Time)",
+  });
 
   useEffect(() => {
     if (!token) {
@@ -126,6 +133,35 @@ export default function TaxPalDashboard() {
     }
   }, [token, contextUser, navigate]);
 
+  useEffect(() => {
+    try {
+      const savedPrefs = localStorage.getItem("taxpalPreferences");
+      const saved2fa = localStorage.getItem("taxpalTwoFactor");
+      if (savedPrefs) {
+        setPreferences(JSON.parse(savedPrefs));
+      }
+      if (saved2fa) {
+        setTwoFactorEnabled(saved2fa === "true");
+      }
+    } catch (err) {
+      console.error("[v0] Error loading saved preferences", err);
+    }
+  }, []);
+
+  const getCurrencySymbol = () => {
+    if (preferences.currencySymbol) return preferences.currencySymbol;
+    const symbols = ["₹", "$", "€", "£", "¥"];
+    const fromLabel =
+      preferences.currency &&
+      symbols.find((s) => preferences.currency.includes(s));
+    return fromLabel || "₹";
+  };
+
+  const formatCurrency = (value) => {
+    const num = typeof value === "number" ? value : parseFloat(value || 0);
+    return `${getCurrencySymbol()} ${num.toFixed(2)}`;
+  };
+
   const handleLogout = () => {
     logout();
     navigate("/");
@@ -138,7 +174,6 @@ export default function TaxPalDashboard() {
       fetchAlerts();
     }
   };
-
   // close the alerts dropdown when clicking outside
   const alertsRef = React.useRef(null);
   React.useEffect(() => {
@@ -259,6 +294,57 @@ export default function TaxPalDashboard() {
     } catch (error) {
       console.error("Error adding income:", error);
       alert("Failed to add income ❌");
+    }
+  };
+
+  const handleToggleTwoFactor = () => {
+    const newValue = !twoFactorEnabled;
+    setTwoFactorEnabled(newValue);
+    localStorage.setItem("taxpalTwoFactor", newValue.toString());
+    alert(
+      `Two-factor authentication ${newValue ? "enabled" : "disabled"} (saved on this device).`,
+    );
+  };
+
+  const updatePreferences = (updated) => {
+    setPreferences(updated);
+    localStorage.setItem("taxpalPreferences", JSON.stringify(updated));
+  };
+
+  const handleChangeCurrency = () => {
+    const next = window.prompt(
+      "Enter preferred currency (e.g. INR - Indian Rupee (₹))",
+      preferences.currency,
+    );
+    if (next && next.trim()) {
+      const label = next.trim();
+      const symbols = ["₹", "$", "€", "£", "¥"];
+      const foundSymbol = symbols.find((s) => label.includes(s));
+      updatePreferences({
+        ...preferences,
+        currency: label,
+        currencySymbol: foundSymbol || getCurrencySymbol(),
+      });
+    }
+  };
+
+  const handleChangeLanguage = () => {
+    const next = window.prompt(
+      "Enter preferred language (e.g. English (US))",
+      preferences.language,
+    );
+    if (next && next.trim()) {
+      updatePreferences({ ...preferences, language: next.trim() });
+    }
+  };
+
+  const handleChangeTimeZone = () => {
+    const next = window.prompt(
+      "Enter preferred time zone (e.g. IST (Indian Standard Time))",
+      preferences.timeZone,
+    );
+    if (next && next.trim()) {
+      updatePreferences({ ...preferences, timeZone: next.trim() });
     }
   };
 
@@ -522,9 +608,9 @@ Generated: ${reportData.generatedDate}
 
 SUMMARY
 -------
-Total Income: ₹${reportData.totalIncome}
-Total Expenses: ₹${reportData.totalExpenses}
-Net Income: ₹${reportData.netIncome}
+Total Income: ${formatCurrency(reportData.totalIncome)}
+Total Expenses: ${formatCurrency(reportData.totalExpenses)}
+Net Income: ${formatCurrency(reportData.netIncome)}
 Transactions: ${reportData.transactionCount}
 
 ========================
@@ -569,23 +655,13 @@ End of Report
   }, [token]);
 
   const calculateStats = () => {
-    const now = new Date();
-    const currentMonth = now.getMonth();
-    const currentYear = now.getFullYear();
-
-    const monthlyTransactions = transactions.filter((tx) => {
-      const txDate = new Date(tx.date);
-      return (
-        txDate.getMonth() === currentMonth &&
-        txDate.getFullYear() === currentYear
-      );
-    });
-
-    const monthlyIncome = monthlyTransactions
+    // Simple totals based on all transactions so that
+    // new income/expenses always reflect immediately.
+    const monthlyIncome = transactions
       .filter((tx) => tx.type === "income")
       .reduce((sum, tx) => sum + (tx.amount || 0), 0);
 
-    const monthlyExpenses = monthlyTransactions
+    const monthlyExpenses = transactions
       .filter((tx) => tx.type === "expense")
       .reduce((sum, tx) => sum + (tx.amount || 0), 0);
 
@@ -602,25 +678,25 @@ End of Report
     return [
       {
         title: "monthly income",
-        amount: monthlyIncome.toFixed(2),
+        amount: monthlyIncome,
         color: "stat-yellow",
         icon: TrendingUp,
       },
       {
         title: "monthly expenses",
-        amount: monthlyExpenses.toFixed(2),
+        amount: monthlyExpenses,
         color: "stat-orange",
         icon: TrendingDown,
       },
       {
         title: "Estimated Tax due",
-        amount: estimatedTax.toFixed(2),
+        amount: estimatedTax,
         color: "stat-blue",
         icon: FileText,
       },
       {
         title: "Savings Rate",
-        amount: savingsRate.toFixed(2),
+        amount: savingsRate,
         color: "stat-green",
         icon: TrendingUp,
       },
@@ -656,7 +732,7 @@ End of Report
                 <div key={index} className="stat-card">
                   <p className="stat-title">{stat.title}</p>
                   <div className="stat-content">
-                    <span className="stat-amount">₹ {stat.amount}</span>
+                    <span className="stat-amount">{formatCurrency(stat.amount)}</span>
                     <div className={`stat-icon ${stat.color}`}>
                       <stat.icon size={24} />
                     </div>
@@ -707,7 +783,7 @@ End of Report
                           cx="50%"
                           cy="50%"
                           labelLine={false}
-                          label={({ name, value }) => `${name}: ₹${value}`}
+                          label={({ name, value }) => `${name}: ${formatCurrency(value)}`}
                           outerRadius={100}
                           fill="#8884D8"
                           dataKey="value"
@@ -791,7 +867,7 @@ End of Report
                             fontWeight: 600,
                           }}
                         >
-                          ₹{tx.amount}
+                          {formatCurrency(tx.amount)}
                         </td>
                         <td className="hide-tablet">{tx.type}</td>
                       </tr>
@@ -834,7 +910,7 @@ End of Report
                   <input
                     type="number"
                     name="amount"
-                    placeholder="₹ 0.00"
+                    placeholder={`${getCurrencySymbol()} 0.00`}
                     value={budgetForm.amount}
                     onChange={handleBudgetChange}
                   />
@@ -881,7 +957,7 @@ End of Report
                         <div className="budget-item-info">
                           <p className="budget-item-category">{budget.category}</p>
                           <p className="budget-item-amounts">
-                            Budget: ₹{budget.amount.toFixed(2)} | Spent: ₹{budget.spent?.toFixed(2) || "0.00"}
+                            Budget: {formatCurrency(budget.amount)} | Spent: {formatCurrency(budget.spent || 0)}
                           </p>
                           {budget.description && (
                             <p className="budget-item-description">{budget.description}</p>
@@ -931,7 +1007,7 @@ End of Report
                   <input
                     type="number"
                     name="grossIncome"
-                    placeholder="₹ 0.00"
+                    placeholder={`${getCurrencySymbol()} 0.00`}
                     value={taxForm.grossIncome}
                     onChange={handleTaxChange}
                   />
@@ -945,7 +1021,7 @@ End of Report
                     <input
                       type="number"
                       name="businessExpenses"
-                      placeholder="₹ 0.00"
+                    placeholder={`${getCurrencySymbol()} 0.00`}
                       value={taxForm.businessExpenses}
                       onChange={handleTaxChange}
                     />
@@ -956,7 +1032,7 @@ End of Report
                     <input
                       type="number"
                       name="retirementContributions"
-                      placeholder="₹ 0.00"
+                    placeholder={`${getCurrencySymbol()} 0.00`}
                       value={taxForm.retirementContributions}
                       onChange={handleTaxChange}
                     />
@@ -969,7 +1045,7 @@ End of Report
                     <input
                       type="number"
                       name="healthInsurance"
-                      placeholder="₹ 0.00"
+                    placeholder={`${getCurrencySymbol()} 0.00`}
                       value={taxForm.healthInsurance}
                       onChange={handleTaxChange}
                     />
@@ -980,7 +1056,7 @@ End of Report
                     <input
                       type="number"
                       name="homeOfficeDeduction"
-                      placeholder="₹ 0.00"
+                    placeholder={`${getCurrencySymbol()} 0.00`}
                       value={taxForm.homeOfficeDeduction}
                       onChange={handleTaxChange}
                     />
@@ -999,13 +1075,13 @@ End of Report
                 <div className="tax-summary-content">
                   <div className="tax-summary-section">
                     <p className="tax-summary-item">
-                      <strong>Gross Income:</strong> ₹{taxSummary.grossIncome.toFixed(2)}
+                      <strong>Gross Income:</strong> {formatCurrency(taxSummary.grossIncome)}
                     </p>
                     <p className="tax-summary-item">
-                      <strong>Total Deductions:</strong> ₹{taxSummary.totalDeductions.toFixed(2)}
+                      <strong>Total Deductions:</strong> {formatCurrency(taxSummary.totalDeductions)}
                     </p>
                     <p className="tax-summary-item">
-                      <strong>Taxable Income:</strong> ₹{taxSummary.taxableIncome.toFixed(2)}
+                      <strong>Taxable Income:</strong> {formatCurrency(taxSummary.taxableIncome)}
                     </p>
                   </div>
 
@@ -1013,21 +1089,21 @@ End of Report
 
                   <div className="tax-summary-section">
                     <p className="tax-summary-item">
-                      <strong>Federal Tax (22%):</strong> ₹{taxSummary.federalTax}
+                      <strong>Federal Tax (22%):</strong> {formatCurrency(taxSummary.federalTax)}
                     </p>
                     <p className="tax-summary-item">
-                      <strong>State Tax (5%):</strong> ₹{taxSummary.stateTax}
+                      <strong>State Tax (5%):</strong> {formatCurrency(taxSummary.stateTax)}
                     </p>
                     <p className="tax-summary-item">
-                      <strong>Self-Employment Tax (15.3%):</strong> ₹{taxSummary.selfEmploymentTax}
+                      <strong>Self-Employment Tax (15.3%):</strong> {formatCurrency(taxSummary.selfEmploymentTax)}
                     </p>
                   </div>
 
                   <hr className="tax-summary-divider" />
 
                   <div className="tax-summary-highlight">
-                    <p className="tax-summary-total">Total Tax: ₹{taxSummary.totalTax}</p>
-                    <p className="tax-summary-quarterly">Quarterly Payment: ₹{taxSummary.estimatedQuarterlyPayment}</p>
+                    <p className="tax-summary-total">Total Tax: {formatCurrency(taxSummary.totalTax)}</p>
+                    <p className="tax-summary-quarterly">Quarterly Payment: {formatCurrency(taxSummary.estimatedQuarterlyPayment)}</p>
                   </div>
                 </div>
               ) : (
@@ -1130,9 +1206,9 @@ End of Report
                   <p><strong>Report Type:</strong> {reportData.type}</p>
                   <p><strong>Period:</strong> {reportData.period}</p>
                   <p><strong>Generated Date:</strong> {reportData.generatedDate}</p>
-                  <p><strong>Total Income:</strong> ₹{reportData.totalIncome}</p>
-                  <p><strong>Total Expenses:</strong> ₹{reportData.totalExpenses}</p>
-                  <p><strong>Net Income:</strong> ₹{reportData.netIncome}</p>
+                  <p><strong>Total Income:</strong> {formatCurrency(reportData.totalIncome)}</p>
+                  <p><strong>Total Expenses:</strong> {formatCurrency(reportData.totalExpenses)}</p>
+                  <p><strong>Net Income:</strong> {formatCurrency(reportData.netIncome)}</p>
                   <p><strong>Transaction Count:</strong> {reportData.transactionCount}</p>
                 </div>
               </div>
@@ -1424,25 +1500,14 @@ End of Report
                             <p className="setting-item-desc">Last changed 2 months ago</p>
                           </div>
                         </div>
-                        <button className="setting-action-btn">
+                        <button
+                          className="setting-action-btn"
+                          onClick={() => navigate("/forgot-password")}
+                        >
                           Change
                         </button>
                       </div>
 
-                      <div className="setting-item">
-                        <div className="setting-item-left">
-                          <div className="setting-icon-wrapper">
-                            <Bell size={20} />
-                          </div>
-                          <div className="setting-item-info">
-                            <h4 className="setting-item-title">Email Notifications</h4>
-                            <p className="setting-item-desc">Manage your notification preferences</p>
-                          </div>
-                        </div>
-                        <button className="setting-action-btn">
-                          Manage
-                        </button>
-                      </div>
 
                       <div className="setting-item">
                         <div className="setting-item-left">
@@ -1451,11 +1516,16 @@ End of Report
                           </div>
                           <div className="setting-item-info">
                             <h4 className="setting-item-title">Two-Factor Authentication</h4>
-                            <p className="setting-item-desc">Add an extra layer of security</p>
+                            <p className="setting-item-desc">
+                              {twoFactorEnabled ? "Enabled on this device" : "Disabled"}
+                            </p>
                           </div>
                         </div>
-                        <button className="setting-action-btn">
-                          Enable
+                        <button
+                          className="setting-action-btn"
+                          onClick={handleToggleTwoFactor}
+                        >
+                          {twoFactorEnabled ? "Disable" : "Enable"}
                         </button>
                       </div>
                     </div>
@@ -1476,10 +1546,13 @@ End of Report
                         <div className="setting-item-left">
                           <div className="setting-item-info">
                             <h4 className="setting-item-title">Currency</h4>
-                            <p className="setting-item-desc">INR - Indian Rupee (₹)</p>
+                            <p className="setting-item-desc">{preferences.currency}</p>
                           </div>
                         </div>
-                        <button className="setting-action-btn">
+                        <button
+                          className="setting-action-btn"
+                          onClick={handleChangeCurrency}
+                        >
                           Change
                         </button>
                       </div>
@@ -1488,10 +1561,13 @@ End of Report
                         <div className="setting-item-left">
                           <div className="setting-item-info">
                             <h4 className="setting-item-title">Language</h4>
-                            <p className="setting-item-desc">English (US)</p>
+                            <p className="setting-item-desc">{preferences.language}</p>
                           </div>
                         </div>
-                        <button className="setting-action-btn">
+                        <button
+                          className="setting-action-btn"
+                          onClick={handleChangeLanguage}
+                        >
                           Change
                         </button>
                       </div>
@@ -1500,10 +1576,13 @@ End of Report
                         <div className="setting-item-left">
                           <div className="setting-item-info">
                             <h4 className="setting-item-title">Time Zone</h4>
-                            <p className="setting-item-desc">IST (Indian Standard Time)</p>
+                            <p className="setting-item-desc">{preferences.timeZone}</p>
                           </div>
                         </div>
-                        <button className="setting-action-btn">
+                        <button
+                          className="setting-action-btn"
+                          onClick={handleChangeTimeZone}
+                        >
                           Change
                         </button>
                       </div>

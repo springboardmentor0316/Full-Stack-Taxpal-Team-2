@@ -3,7 +3,7 @@
 import { useState } from "react"
 import "../styles/ForgotPassword.css"
 // SVG image - using placeholder fallback
-// import img1 from "../assets/img1.svg"
+import img1 from "../assets/img1.svg"
 import { Link, useNavigate } from "react-router-dom"
 import { authApi } from "../api/authApi"
 
@@ -40,7 +40,7 @@ const ForgotPassword = () => {
     <div className="forgot-wrapper">
       {/* LEFT IMAGE SECTION */}
       <div className="left-image-section">
-        <img src="/placeholder.svg" alt="Taxpal" />
+        <img src={img1 || "/placeholder.svg"}  alt="Taxpal" />
       </div>
 
       {/* RIGHT FORM SECTION */}

@@ -17,6 +17,7 @@ const Login = () => {
   const [error, setError] = useState("")
   const navigate = useNavigate()
   const { setAuth } = useAuth()
+  const [showPassword, setShowPassword] = useState(false)
 
   const handleChange = (e) => {
     const { name, value } = e.target
@@ -74,17 +75,25 @@ const Login = () => {
               />
             </div>
 
-            <div className="form-group">
-              <label>Password</label>
+                      <div className="form-group password-group">
+            <label>Password</label>
+            <div className="password-input-wrapper">
               <input
-                type="password"
+                type={showPassword ? "text" : "password"}
                 name="password"
                 placeholder="Enter your password"
                 value={formData.password}
                 onChange={handleChange}
                 disabled={loading}
               />
+              <span
+                className="eye-icon"
+                onClick={() => setShowPassword((prev) => !prev)}
+              >
+                {showPassword ? "🙈" : "👁"}
+              </span>
             </div>
+          </div>
 
             <button type="submit" className="submit-btn" disabled={loading}>
               {loading ? "Logging in..." : "Login now"}
